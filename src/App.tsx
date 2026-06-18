@@ -106,6 +106,7 @@ function drawWheel(
   highlightIdx: number | null
 ) {
   const n = names.length;
+  const hideLabels = n > 100;
   const arc = (2 * Math.PI) / n;
 
   ctx.save();
@@ -137,26 +138,37 @@ function drawWheel(
     ctx.stroke();
 
     // Text
-    ctx.save();
-    ctx.rotate(startAngle + arc / 2);
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
-    const fontSize = Math.max(10, Math.min(16, radius / (n * 0.28)));
-    ctx.font = `bold ${fontSize}px 'Montserrat', sans-serif`;
-    ctx.fillStyle =
-      isHighlight
-        ? PMG_COLORS.darkText
-        : isLight
-        ? PMG_COLORS.green.dark
-        : "#ffffff";
-    ctx.shadowColor = "rgba(0,0,0,0.4)";
-    ctx.shadowBlur = 3;
+    if (!hideLabels) {
+  ctx.save();
+  ctx.rotate(startAngle + arc / 2);
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
 
-    const maxTextWidth = radius * 0.7;
-    const label = names[i];
-    ctx.fillText(label, radius - 14, 0, maxTextWidth);
-    ctx.restore();
-  }
+  const fontSize = Math.max(
+    10,
+    Math.min(16, radius / (n * 0.28))
+  );
+
+  ctx.font = `bold ${fontSize}px 'Montserrat', sans-serif`;
+
+  ctx.fillStyle =
+    isHighlight
+      ? PMG_COLORS.darkText
+      : isLight
+      ? PMG_COLORS.green.dark
+      : "#ffffff";
+
+  ctx.shadowColor = "rgba(0,0,0,0.4)";
+  ctx.shadowBlur = 3;
+
+  const maxTextWidth = radius * 0.7;
+  const label = names[i];
+
+  ctx.fillText(label, radius - 14, 0, maxTextWidth);
+  ctx.restore();
+}
+
+} 
 
   // Center circle
   ctx.beginPath();
