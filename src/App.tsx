@@ -743,12 +743,15 @@ create policy "public select" on wheel_spins
 // ─── STYLES ───────────────────────────────────────────────────────
 const styles: Record<string, React.CSSProperties> = {
   root: {
-  minHeight: "100vh",
+  width: "100vw",
+  height: "100vh",
+  maxWidth: "100%",
   display: "flex",
-  flexDirection: "column",
+  flexDirection: "column" as const,
   fontFamily: "'Inter', 'Montserrat', sans-serif",
-  background: `radial-gradient(ellipse at top, #dcfce7 0%, ${PMG_COLORS.offwhite} 60%)`,
+  background: `radial-gradient(ellipse at top, #dcfce7 0%, #f0f4f1 60%)`,
   color: PMG_COLORS.darkText,
+  overflow: "hidden",
 },
 
   // Header
@@ -834,32 +837,32 @@ const styles: Record<string, React.CSSProperties> = {
   // Main
   main: {
   flex: 1,
-  maxWidth: 1100,
   width: "100%",
-  margin: "0 auto",
-  padding: "48px 32px",
+  maxWidth: "100%",
+  padding: "24px 48px",
   display: "flex",
-  gap: 48,
-  flexWrap: "wrap" as const,
+  gap: 40,
+  flexWrap: "nowrap" as const,
   alignItems: "center",
   justifyContent: "center",
+  overflow: "hidden",
 },
 
   // Wheel
   wheelCol: {
-  flex: "1 1 480px",
-  maxWidth: 580,
+  flex: "0 0 auto",
+  width: "min(55vh, 55vw)",
   display: "flex",
   flexDirection: "column" as const,
   alignItems: "center",
-  gap: 28,
+  gap: 20,
 },
  canvasWrapper: {
   width: "100%",
-  maxWidth: 520,
+  aspectRatio: "1 / 1",
   position: "relative" as const,
   borderRadius: "50%",
-  padding: 20,
+  padding: 16,
   background: "radial-gradient(circle at center, #0f5c23 0%, #062a10 75%)",
   animation: "pulseGlow 3s ease-in-out infinite",
 },
@@ -912,14 +915,16 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Panel
   panel: {
-  flex: "1 1 300px",
-  maxWidth: 380,
+  flex: "1 1 0",
+  maxWidth: 360,
+  minWidth: 260,
+  maxHeight: "80vh",
+  overflowY: "auto" as const,
   background: PMG_COLORS.white,
   borderRadius: 20,
   border: "1px solid #e2e8f0",
   boxShadow: "0 4px 32px rgba(6,42,16,0.10)",
   overflow: "hidden",
-  minWidth: 280,
 },
   tabBar: {
     display: "flex",
