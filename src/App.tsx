@@ -153,8 +153,10 @@ function drawWheel(
     ctx.shadowBlur = 3;
 
     const maxTextWidth = radius * 0.7;
-    const label = names[i];
-    ctx.fillText(label, radius - 14, 0, maxTextWidth);
+if (names.length <= 100) {
+  const label = names[i];
+  ctx.fillText(label, radius - 14, 0, maxTextWidth);
+}
     ctx.restore();
   }
 
@@ -248,32 +250,6 @@ const [spinDuration, setSpinDuration] = useState(5);
   // Asset fallback state (true while real logo/mascot files aren't found)
   const [logoMissing, setLogoMissing] = useState(false);
 const [mascotMissing, setMascotMissing] = useState(false);
-if (!started) {
-  return (
-    <div style={styles.splash}>
-      <img
-        src="/logo.png"
-        alt="PMG"
-        style={styles.splashLogo}
-      />
-
-      <h1 style={styles.splashTitle}>
-        RODA DA SORTE
-      </h1>
-
-      <p style={styles.splashSubtitle}>
-        PMG Atacadista
-      </p>
-
-      <button
-        style={styles.splashButton}
-        onClick={() => setStarted(true)}
-      >
-        COMEÇAR SORTEIO
-      </button>
-    </div>
-  );
-}
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -498,6 +474,28 @@ if (!started) {
   setShowModal(false);
 };
 
+if (!started) {
+  return (
+    <div style={styles.splash}>
+      <img
+        src="/logo.png"
+        alt="PMG"
+        style={styles.splashLogo}
+      />
+
+      <h1 style={styles.splashTitle}>
+        RODA DA SORTE
+      </h1>
+
+      <button
+        style={styles.splashButton}
+        onClick={() => setStarted(true)}
+      >
+        COMEÇAR SORTEIO
+      </button>
+    </div>
+  );
+  
   // ─────────────────────────────────────────────────────────────────
   return (
     <div style={styles.root}>
@@ -944,15 +942,15 @@ floatingMascotWrap: {
   position: "fixed" as const,
   bottom: 20,
   right: 20,
-  width: 120,
-  height: 120,
+  width: 220,
+  height: 220,
   zIndex: 40,
   animation: "mascotFloat 3.5s ease-in-out infinite",
   pointerEvents: "none" as const,
 },
 floatingMascotImg: {
-  width: "200%",
-  height: "200%",
+  width: "100%",
+  height: "100%",
   objectFit: "contain" as const,
   filter: "drop-shadow(0 12px 24px rgba(6,42,16,0.35))",
 },
@@ -1326,4 +1324,4 @@ button:not(:disabled):active { transform: scale(0.97) !important; }
   `;
   document.head.appendChild(style);
 }
-
+}
