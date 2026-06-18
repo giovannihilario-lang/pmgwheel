@@ -21,36 +21,37 @@ interface SpinRecord {
 // ─── PMG COLOR PALETTE ────────────────────────────────────────────
 const PMG_COLORS = {
   green: {
-    dark: "#1a5c2a",
-    mid: "#2e7d32",
-    light: "#4caf50",
-    pale: "#e8f5e9",
+    dark:  "#062a10",
+    mid:   "#0f5c23",
+    light: "#22c55e",
+    pale:  "#dcfce7",
+    glow:  "#16a34a",
   },
   red: {
-    dark: "#b71c1c",
-    mid: "#c62828",
-    light: "#ef5350",
-    pale: "#ffebee",
+    dark:  "#7f1d1d",
+    mid:   "#dc2626",
+    light: "#f87171",
+    pale:  "#fee2e2",
   },
-  white: "#ffffff",
-  offwhite: "#f9fafb",
-  gold: "#f9c80e",
-  darkText: "#1a1a1a",
+  white:    "#ffffff",
+  offwhite: "#f0f4f1",
+  gold:     "#22c55e",   // renomear uso de "gold" → agora é verde-brilho
+  darkText: "#0a1f0e",
   gray: {
     light: "#f1f5f9",
-    mid: "#94a3b8",
-    dark: "#334155",
+    mid:   "#94a3b8",
+    dark:  "#334155",
   },
 };
 
 // Wheel segment color pattern (cycles per segment)
 const SEGMENT_PALETTE = [
-  PMG_COLORS.green.dark,
-  PMG_COLORS.white,
-  PMG_COLORS.red.dark,
-  PMG_COLORS.green.mid,
-  PMG_COLORS.white,
-  PMG_COLORS.red.mid,
+  "#062a10",
+  "#ffffff",
+  "#7f1d1d",
+  "#0f5c23",
+  "#f0f4f1",
+  "#dc2626",
 ];
 
 // ─── CONFETTI ─────────────────────────────────────────────────────
@@ -747,19 +748,20 @@ create policy "public select" on wheel_spins
 // ─── STYLES ───────────────────────────────────────────────────────
 const styles: Record<string, React.CSSProperties> = {
   root: {
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: "'Montserrat', 'Inter', sans-serif",
-    background: PMG_COLORS.offwhite,
-    color: PMG_COLORS.darkText,
-  },
+  minHeight: "100vh",
+  display: "flex",
+  flexDirection: "column",
+  fontFamily: "'Inter', 'Montserrat', sans-serif",
+  background: `radial-gradient(ellipse at top, #dcfce7 0%, ${PMG_COLORS.offwhite} 60%)`,
+  color: PMG_COLORS.darkText,
+},
 
   // Header
   header: {
-    background: PMG_COLORS.green.dark,
-    borderBottom: `4px solid ${PMG_COLORS.gold}`,
-    padding: "0 24px",
+  background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, #0f5c23 60%, ${PMG_COLORS.green.dark} 100%)`,
+  borderBottom: `3px solid ${PMG_COLORS.green.light}`,
+  padding: "0 24px",
+  boxShadow: "0 4px 32px rgba(34,197,94,0.18)",
   },
   headerInner: {
     maxWidth: 1200,
@@ -800,13 +802,14 @@ const styles: Record<string, React.CSSProperties> = {
   flexShrink: 0,
 },
   headerTitle: {
-    margin: 0,
-    fontSize: 22,
-    fontWeight: 800,
-    color: "#ffffff",
-    lineHeight: 1.1,
-    letterSpacing: 0.5,
-  },
+  margin: 0,
+  fontSize: 28,
+  fontFamily: "'Bebas Neue', sans-serif",
+  fontWeight: 400,
+  color: "#ffffff",
+  lineHeight: 1,
+  letterSpacing: 3,
+},
   headerSub: {
     margin: 0,
     fontSize: 12,
@@ -854,14 +857,15 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: 20,
   },
-  canvasWrapper: {
-    width: "100%",
-    maxWidth: 520,
-    position: "relative" as const,
-    // Decorative ring
-    borderRadius: "50%",
-    padding: 0,
-  },
+ canvasWrapper: {
+  width: "100%",
+  maxWidth: 520,
+  position: "relative" as const,
+  borderRadius: "50%",
+  padding: 20,
+  background: "radial-gradient(circle at center, #0f5c23 0%, #062a10 75%)",
+  animation: "pulseGlow 3s ease-in-out infinite",
+},
   canvas: {
     width: "100%",
     height: "auto",
@@ -870,23 +874,23 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   // Spin button
-  spinBtn: {
-    width: "100%",
-    maxWidth: 320,
-    padding: "16px 32px",
-    background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, ${PMG_COLORS.green.mid} 100%)`,
-    color: "#ffffff",
-    border: `3px solid ${PMG_COLORS.gold}`,
-    borderRadius: 50,
-    fontSize: 20,
-    fontWeight: 800,
-    fontFamily: "Montserrat, sans-serif",
-    cursor: "pointer",
-    letterSpacing: 2,
-    textTransform: "uppercase" as const,
-    transition: "transform 0.15s, box-shadow 0.15s",
-    boxShadow: `0 6px 24px rgba(26,92,42,0.35)`,
-  },
+ spinBtn: {
+  width: "100%",
+  maxWidth: 320,
+  padding: "18px 32px",
+  background: `linear-gradient(160deg, ${PMG_COLORS.green.light} 0%, ${PMG_COLORS.green.glow} 100%)`,
+  color: "#ffffff",
+  border: "none",
+  borderRadius: 50,
+  fontSize: 22,
+  fontWeight: 900,
+  fontFamily: "'Bebas Neue', Montserrat, sans-serif",
+  cursor: "pointer",
+  letterSpacing: 5,
+  textTransform: "uppercase" as const,
+  transition: "transform 0.18s cubic-bezier(.34,1.56,.64,1), box-shadow 0.18s",
+  boxShadow: "0 8px 32px rgba(34,197,94,0.45), 0 2px 8px rgba(0,0,0,0.18)",
+},
   spinBtnDisabled: {
     opacity: 0.5,
     cursor: "not-allowed",
@@ -1071,31 +1075,34 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Modal
   modalOverlay: {
-    position: "fixed" as const,
-    inset: 0,
-    background: "rgba(0,0,0,0.65)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 100,
-    padding: 20,
-  },
+  position: "fixed" as const,
+  inset: 0,
+  background: "rgba(6,42,16,0.85)",
+  backdropFilter: "blur(8px)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 100,
+  padding: 20,
+},
   modal: {
-    background: PMG_COLORS.white,
-    borderRadius: 20,
-    border: `4px solid ${PMG_COLORS.gold}`,
-    boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
-    overflow: "hidden",
-    maxWidth: 440,
-    width: "100%",
-    position: "relative" as const,
-  },
+  background: `linear-gradient(160deg, ${PMG_COLORS.green.dark} 0%, #0f5c23 100%)`,
+  borderRadius: 24,
+  border: `2px solid ${PMG_COLORS.green.light}`,
+  boxShadow: "0 32px 96px rgba(6,42,16,0.7), 0 0 64px rgba(34,197,94,0.2)",
+  overflow: "hidden",
+  maxWidth: 480,
+  width: "100%",
+  position: "relative" as const,
+  animation: "fadeSlideUp 0.4s cubic-bezier(.34,1.56,.64,1)",
+},
   mascotArea: {
-    background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, ${PMG_COLORS.green.mid} 100%)`,
-    padding: "28px 20px 20px",
-    display: "flex",
-    justifyContent: "center",
-  },
+  padding: "36px 20px 16px",
+  display: "flex",
+  justifyContent: "center",
+  position: "relative" as const,
+  overflow: "hidden" as const,
+},
   mascotPlaceholder: {
     width: 100,
     height: 100,
@@ -1108,34 +1115,41 @@ const styles: Record<string, React.CSSProperties> = {
     // Replace contents with your mascot image
   },
   modalContent: {
-    padding: "24px 28px 28px",
-    textAlign: "center" as const,
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: 12,
-  },
+  padding: "28px 36px 36px",
+  textAlign: "center" as const,
+  display: "flex",
+  flexDirection: "column" as const,
+  gap: 14,
+  background: "rgba(0,0,0,0.15)",
+},
   modalLabel: {
-    margin: 0,
-    fontSize: 13,
-    fontWeight: 700,
-    color: PMG_COLORS.gray.mid,
-    textTransform: "uppercase" as const,
-    letterSpacing: 1,
-  },
+  margin: 0,
+  fontSize: 11,
+  fontWeight: 700,
+  fontFamily: "'Inter', sans-serif",
+  color: PMG_COLORS.green.light,
+  textTransform: "uppercase" as const,
+  letterSpacing: 4,
+},
   modalWinner: {
-    margin: 0,
-    fontSize: 30,
-    fontWeight: 900,
-    color: PMG_COLORS.green.dark,
-    lineHeight: 1.2,
-    letterSpacing: -0.5,
-  },
+  margin: 0,
+  fontSize: 64,
+  fontFamily: "'Bebas Neue', sans-serif",
+  fontWeight: 400,
+  color: "#ffffff",
+  lineHeight: 1,
+  letterSpacing: 2,
+  textShadow: "0 0 48px rgba(34,197,94,0.6)",
+  animation: "winnerpop 0.5s cubic-bezier(.34,1.56,.64,1) 0.1s both",
+},
   modalCampaign: {
-    margin: 0,
-    fontSize: 13,
-    color: PMG_COLORS.gray.mid,
-    fontWeight: 600,
-  },
+  margin: 0,
+  fontSize: 13,
+  color: "rgba(255,255,255,0.55)",
+  fontFamily: "'Inter', sans-serif",
+  fontWeight: 500,
+  letterSpacing: 1,
+},
   modalActions: {
     display: "flex",
     flexDirection: "column" as const,
@@ -1159,12 +1173,30 @@ if (!document.getElementById("pmg-styles")) {
   const style = document.createElement("style");
   style.id = "pmg-styles";
   style.textContent = `
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&family=Montserrat:wght@800;900&display=swap');
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     * { box-sizing: border-box; }
     body { margin: 0; }
     textarea:focus, input:focus { border-color: #2e7d32 !important; box-shadow: 0 0 0 3px rgba(46,125,50,0.15); }
-    button:not(:disabled):hover { filter: brightness(0.93); }
+    button:not(:disabled):hover { transform: translateY(-2px) scale(1.03) !important; filter: brightness(1.08); }
+button:not(:disabled):active { transform: scale(0.97) !important; }
+    @keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 32px 8px rgba(34,197,94,0.25), 0 0 80px 16px rgba(34,197,94,0.08); }
+  50%       { box-shadow: 0 0 56px 16px rgba(34,197,94,0.45), 0 0 120px 32px rgba(34,197,94,0.18); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+@keyframes winnerpop {
+  0%   { opacity: 0; transform: scale(0.7) translateY(30px); }
+  70%  { transform: scale(1.05) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
   `;
   document.head.appendChild(style);
 }
