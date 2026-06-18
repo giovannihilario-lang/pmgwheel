@@ -365,7 +365,7 @@ const [mascotMissing, setMascotMissing] = useState(false);
       if (!canvas) return;
       const container = canvas.parentElement;
       if (!container) return;
-      const size = Math.min(container.clientWidth, 520);
+const size = Math.min(container.clientWidth, 750);
       canvas.width = size;
       canvas.height = size;
     };
@@ -823,22 +823,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   header: {
-    background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, #0f5c23 60%, ${PMG_COLORS.green.dark} 100%)`,
-    borderBottom: `3px solid ${PMG_COLORS.green.light}`,
-    padding: "0 24px",
-    boxShadow: "0 4px 32px rgba(34,197,94,0.18)",
-    flexShrink: 0,           // ← impede o header de encolher
-  },
+  background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, #0f5c23 60%, ${PMG_COLORS.green.dark} 100%)`,
+  borderBottom: `3px solid ${PMG_COLORS.green.light}`,
+  padding: "8px 24px",
+  boxShadow: "0 4px 32px rgba(34,197,94,0.18)",
+  flexShrink: 0,
+},
   headerInner: {
-    maxWidth: 1200,
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-    padding: "14px 0",
-    flexWrap: "wrap" as const,
-  },
+  maxWidth: 1400,
+  margin: "0 auto",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 24,
+  padding: "8px 0",
+},
   headerBrand: {
     display: "flex",
     alignItems: "center",
@@ -903,39 +902,40 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   main: {
-    flex: 1,
-    width: "100%",
-    padding: "24px clamp(16px, 3vw, 48px)", // ← padding responsivo
-    display: "flex",
-    gap: 40,
-    flexWrap: "wrap" as const,              // ← era nowrap (quebrava em telas menores)
-    alignItems: "flex-start",               // ← era center (causava roda comprimida)
-    justifyContent: "center",
-  },
+  flex: 1,
+  width: "100%",
+  maxWidth: 1500,
+  margin: "0 auto",
+  padding: "20px",
+  display: "flex",
+  gap: 40,
+  alignItems: "flex-start",
+  justifyContent: "space-between",
+},
 
-  wheelCol: {
-    flex: "1 1 380px",                       // ← substitui o width fixo
-    maxWidth: 520,
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    gap: 20,
-  },
+ wheelCol: {
+  flex: 1,
+  minWidth: 700,
+  display: "flex",
+  flexDirection: "column" as const,
+  alignItems: "center",
+  gap: 24,
+},
   canvasWrapper: {
   width: "100%",
+  maxWidth: 750,
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  padding: 0,
 },
   canvas: {
   width: "100%",
-  maxWidth: 480,
+  maxWidth: 750,
   height: "auto",
   display: "block",
   borderRadius: "50%",
   animation: "pulseGlow 3s ease-in-out infinite",
-  filter: "drop-shadow(0 8px 32px rgba(46,125,50,0.25))",
+  filter: "drop-shadow(0 12px 40px rgba(46,125,50,0.25))",
 },
 floatingMascotWrap: {
   position: "fixed" as const,
@@ -993,9 +993,9 @@ floatingMascotImg: {
   },
 
   panel: {
-    flex: "1 1 280px",
-    maxWidth: 380,
-    minWidth: 260,
+  width: 360,
+  minWidth: 360,
+  maxWidth: 360,
     maxHeight: "80vh",
     background: PMG_COLORS.white,
     borderRadius: 20,
