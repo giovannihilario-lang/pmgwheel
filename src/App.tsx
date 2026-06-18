@@ -667,9 +667,10 @@ export default function App() {
             {/* Mascot placeholder */}
             <div style={styles.mascotArea}>
               <div style={styles.mascotPlaceholder}>
-                {/* Replace with: <img src="/mascot.png" style={{width:'100%',height:'100%',objectFit:'contain'}} /> */}
-                <span style={{ fontSize: 56 }}>🎊</span>
-              </div>
+  {/* ↓ COLOQUE O MASCOTE AQUI — substitua por: */}
+  {/* <img src="/mascot.png" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> */}
+  <span style={{ fontSize: 52 }}>🏆</span>
+</div>
             </div>
 
             <div style={styles.modalContent}>
@@ -702,13 +703,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ── Footer ── */}
-      <footer style={styles.footer}>
-        <p>
-          PMG Atacadista — Rua Ada Negri, 96 – Santo Amaro / SP &nbsp;|&nbsp;
-          Seg–Sex 08h–18h · Sáb e fer. 09h–13h
-        </p>
-      </footer>
+      
     </div>
   );
 }
@@ -779,20 +774,20 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 14,
   },
   logoPlaceholder: {
-    width: 52,
-    height: 52,
-    borderRadius: 8,
-    background: PMG_COLORS.gold,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: 800,
-    fontSize: 18,
-    color: PMG_COLORS.green.dark,
-    letterSpacing: 1,
-    flexShrink: 0,
-    // Replace this div with <img src="/logo.png" width={52} height={52} />
-  },
+  width: 56,
+  height: 56,
+  borderRadius: 12,
+  background: "rgba(34,197,94,0.15)",
+  border: "2px dashed #22c55e",   // ← borda tracejada = sinaliza "coloque a logo aqui"
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 800,
+  fontSize: 14,
+  color: "#22c55e",
+  letterSpacing: 1,
+  flexShrink: 0,
+},
   logoText: { fontFamily: "Montserrat, sans-serif" },
   logoImg: {
   width: 52,
@@ -838,25 +833,27 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Main
   main: {
-    flex: 1,
-    maxWidth: 1200,
-    width: "100%",
-    margin: "0 auto",
-    padding: "32px 20px",
-    display: "flex",
-    gap: 32,
-    flexWrap: "wrap" as const,
-    alignItems: "flex-start",
-  },
+  flex: 1,
+  maxWidth: 1100,
+  width: "100%",
+  margin: "0 auto",
+  padding: "48px 32px",
+  display: "flex",
+  gap: 48,
+  flexWrap: "wrap" as const,
+  alignItems: "center",
+  justifyContent: "center",
+},
 
   // Wheel
   wheelCol: {
-    flex: "1 1 400px",
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    gap: 20,
-  },
+  flex: "1 1 480px",
+  maxWidth: 580,
+  display: "flex",
+  flexDirection: "column" as const,
+  alignItems: "center",
+  gap: 28,
+},
  canvasWrapper: {
   width: "100%",
   maxWidth: 520,
@@ -915,14 +912,15 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Panel
   panel: {
-    flex: "0 0 340px",
-    background: PMG_COLORS.white,
-    borderRadius: 16,
-    border: `1px solid #e2e8f0`,
-    boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-    overflow: "hidden",
-    minWidth: 280,
-  },
+  flex: "1 1 300px",
+  maxWidth: 380,
+  background: PMG_COLORS.white,
+  borderRadius: 20,
+  border: "1px solid #e2e8f0",
+  boxShadow: "0 4px 32px rgba(6,42,16,0.10)",
+  overflow: "hidden",
+  minWidth: 280,
+},
   tabBar: {
     display: "flex",
     borderBottom: `1px solid #e2e8f0`,
@@ -1104,16 +1102,15 @@ const styles: Record<string, React.CSSProperties> = {
   overflow: "hidden" as const,
 },
   mascotPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.15)",
-    border: `3px solid ${PMG_COLORS.gold}`,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    // Replace contents with your mascot image
-  },
+  width: 110,
+  height: 110,
+  borderRadius: "50%",
+  background: "rgba(34,197,94,0.12)",
+  border: "2px dashed #22c55e",   // ← mesma lógica: tracejado = placeholder visual
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+},
   modalContent: {
   padding: "28px 36px 36px",
   textAlign: "center" as const,
@@ -1155,16 +1152,6 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column" as const,
     gap: 8,
     marginTop: 8,
-  },
-
-  // Footer
-  footer: {
-    background: PMG_COLORS.green.dark,
-    borderTop: `4px solid ${PMG_COLORS.gold}`,
-    padding: "14px 24px",
-    textAlign: "center" as const,
-    fontSize: 12,
-    color: "rgba(255,255,255,0.7)",
   },
 };
 
