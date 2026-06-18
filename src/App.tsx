@@ -153,10 +153,8 @@ function drawWheel(
     ctx.shadowBlur = 3;
 
     const maxTextWidth = radius * 0.7;
-if (names.length <= 100) {
-  const label = names[i];
-  ctx.fillText(label, radius - 14, 0, maxTextWidth);
-}
+    const label = names[i];
+    ctx.fillText(label, radius - 14, 0, maxTextWidth);
     ctx.restore();
   }
 
@@ -250,6 +248,32 @@ const [spinDuration, setSpinDuration] = useState(5);
   // Asset fallback state (true while real logo/mascot files aren't found)
   const [logoMissing, setLogoMissing] = useState(false);
 const [mascotMissing, setMascotMissing] = useState(false);
+if (!started) {
+  return (
+    <div style={styles.splash}>
+      <img
+        src="/logo.png"
+        alt="PMG"
+        style={styles.splashLogo}
+      />
+
+      <h1 style={styles.splashTitle}>
+        RODA DA SORTE
+      </h1>
+
+      <p style={styles.splashSubtitle}>
+        PMG Atacadista
+      </p>
+
+      <button
+        style={styles.splashButton}
+        onClick={() => setStarted(true)}
+      >
+        COMEÇAR SORTEIO
+      </button>
+    </div>
+  );
+}
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -365,7 +389,7 @@ const [mascotMissing, setMascotMissing] = useState(false);
       if (!canvas) return;
       const container = canvas.parentElement;
       if (!container) return;
-const size = Math.min(container.clientWidth, 750);
+      const size = Math.min(container.clientWidth, 520);
       canvas.width = size;
       canvas.height = size;
     };
@@ -474,28 +498,7 @@ const size = Math.min(container.clientWidth, 750);
   setShowModal(false);
 };
 
-if (!started) {
-  return (
-    <div style={styles.splash}>
-      <img
-        src="/logo.png"
-        alt="PMG"
-        style={styles.splashLogo}
-      />
-
-      <h1 style={styles.splashTitle}>
-        RODA DA SORTE
-      </h1>
-
-      <button
-        style={styles.splashButton}
-        onClick={() => setStarted(true)}
-      >
-        COMEÇAR SORTEIO
-      </button>
-    </div>
-  );
-}
+  // ─────────────────────────────────────────────────────────────────
   return (
     <div style={styles.root}>
       {/* ── Header ── */}
@@ -823,21 +826,22 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   header: {
-  background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, #0f5c23 60%, ${PMG_COLORS.green.dark} 100%)`,
-  borderBottom: `3px solid ${PMG_COLORS.green.light}`,
-  padding: "8px 24px",
-  boxShadow: "0 4px 32px rgba(34,197,94,0.18)",
-  flexShrink: 0,
-},
+    background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, #0f5c23 60%, ${PMG_COLORS.green.dark} 100%)`,
+    borderBottom: `3px solid ${PMG_COLORS.green.light}`,
+    padding: "0 24px",
+    boxShadow: "0 4px 32px rgba(34,197,94,0.18)",
+    flexShrink: 0,           // ← impede o header de encolher
+  },
   headerInner: {
-  maxWidth: 1400,
-  margin: "0 auto",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 24,
-  padding: "8px 0",
-},
+    maxWidth: 1200,
+    margin: "0 auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "14px 0",
+    flexWrap: "wrap" as const,
+  },
   headerBrand: {
     display: "flex",
     alignItems: "center",
@@ -902,54 +906,53 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   main: {
-  flex: 1,
-  width: "100%",
-  maxWidth: 1500,
-  margin: "0 auto",
-  padding: "20px",
-  display: "flex",
-  gap: 40,
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-},
+    flex: 1,
+    width: "100%",
+    padding: "24px clamp(16px, 3vw, 48px)", // ← padding responsivo
+    display: "flex",
+    gap: 40,
+    flexWrap: "wrap" as const,              // ← era nowrap (quebrava em telas menores)
+    alignItems: "flex-start",               // ← era center (causava roda comprimida)
+    justifyContent: "center",
+  },
 
- wheelCol: {
-  flex: 1,
-  minWidth: 700,
-  display: "flex",
-  flexDirection: "column" as const,
-  alignItems: "center",
-  gap: 24,
-},
+  wheelCol: {
+    flex: "1 1 380px",                       // ← substitui o width fixo
+    maxWidth: 520,
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    gap: 20,
+  },
   canvasWrapper: {
   width: "100%",
-  maxWidth: 750,
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
+  padding: 0,
 },
   canvas: {
   width: "100%",
-  maxWidth: 750,
+  maxWidth: 480,
   height: "auto",
   display: "block",
   borderRadius: "50%",
   animation: "pulseGlow 3s ease-in-out infinite",
-  filter: "drop-shadow(0 12px 40px rgba(46,125,50,0.25))",
+  filter: "drop-shadow(0 8px 32px rgba(46,125,50,0.25))",
 },
 floatingMascotWrap: {
   position: "fixed" as const,
   bottom: 20,
   right: 20,
-  width: 220,
-  height: 220,
+  width: 120,
+  height: 120,
   zIndex: 40,
   animation: "mascotFloat 3.5s ease-in-out infinite",
   pointerEvents: "none" as const,
 },
 floatingMascotImg: {
-  width: "100%",
-  height: "100%",
+  width: "200%",
+  height: "200%",
   objectFit: "contain" as const,
   filter: "drop-shadow(0 12px 24px rgba(6,42,16,0.35))",
 },
@@ -993,9 +996,9 @@ floatingMascotImg: {
   },
 
   panel: {
-  width: 360,
-  minWidth: 360,
-  maxWidth: 360,
+    flex: "1 1 280px",
+    maxWidth: 380,
+    minWidth: 260,
     maxHeight: "80vh",
     background: PMG_COLORS.white,
     borderRadius: 20,
