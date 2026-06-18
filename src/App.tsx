@@ -1,0 +1,1175 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+// ─── SUPABASE CONFIG ──────────────────────────────────────────────
+// Replace these with your Supabase project URL and anon key
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const supabase =
+  SUPABASE_URL && SUPABASE_ANON_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+// ─── TYPES ────────────────────────────────────────────────────────
+interface SpinRecord {
+  id: string;
+  winner: string;
+  campaign: string;
+  spun_at: string;
+}
+
+// ─── PMG COLOR PALETTE ────────────────────────────────────────────
+const PMG_COLORS = {
+  green: {
+    dark: "#1a5c2a",
+    mid: "#2e7d32",
+    light: "#4caf50",
+    pale: "#e8f5e9",
+  },
+  red: {
+    dark: "#b71c1c",
+    mid: "#c62828",
+    light: "#ef5350",
+    pale: "#ffebee",
+  },
+  white: "#ffffff",
+  offwhite: "#f9fafb",
+  gold: "#f9c80e",
+  darkText: "#1a1a1a",
+  gray: {
+    light: "#f1f5f9",
+    mid: "#94a3b8",
+    dark: "#334155",
+  },
+};
+
+// Wheel segment color pattern (cycles per segment)
+const SEGMENT_PALETTE = [
+  PMG_COLORS.green.dark,
+  PMG_COLORS.white,
+  PMG_COLORS.red.dark,
+  PMG_COLORS.green.mid,
+  PMG_COLORS.white,
+  PMG_COLORS.red.mid,
+];
+
+// ─── CONFETTI ─────────────────────────────────────────────────────
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  color: string;
+  size: number;
+  rotation: number;
+  rotSpeed: number;
+  life: number;
+  maxLife: number;
+}
+
+function createConfetti(canvas: HTMLCanvasElement): Particle[] {
+  const colors = [
+    PMG_COLORS.green.mid,
+    PMG_COLORS.red.mid,
+    PMG_COLORS.gold,
+    "#ffffff",
+    PMG_COLORS.green.light,
+    PMG_COLORS.red.light,
+  ];
+  const particles: Particle[] = [];
+  for (let i = 0; i < 180; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 18,
+      vy: Math.random() * -18 - 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 10 + 5,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 12,
+      life: 0,
+      maxLife: 120 + Math.random() * 60,
+    });
+  }
+  return particles;
+}
+
+// ─── WHEEL DRAWING ────────────────────────────────────────────────
+function drawWheel(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  names: string[],
+  rotation: number,
+  highlightIdx: number | null
+) {
+  const n = names.length;
+  const arc = (2 * Math.PI) / n;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotation);
+
+  for (let i = 0; i < n; i++) {
+    const startAngle = i * arc;
+    const endAngle = startAngle + arc;
+    const baseColor = SEGMENT_PALETTE[i % SEGMENT_PALETTE.length];
+    const isLight = baseColor === PMG_COLORS.white;
+    const isHighlight = highlightIdx === i;
+
+    // Segment fill
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = isHighlight
+      ? PMG_COLORS.gold
+      : isLight
+      ? "#f0f0f0"
+      : baseColor;
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = PMG_COLORS.gold;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Text
+    ctx.save();
+    ctx.rotate(startAngle + arc / 2);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    const fontSize = Math.max(10, Math.min(16, radius / (n * 0.28)));
+    ctx.font = `bold ${fontSize}px 'Montserrat', sans-serif`;
+    ctx.fillStyle =
+      isHighlight
+        ? PMG_COLORS.darkText
+        : isLight
+        ? PMG_COLORS.green.dark
+        : "#ffffff";
+    ctx.shadowColor = "rgba(0,0,0,0.4)";
+    ctx.shadowBlur = 3;
+
+    const maxTextWidth = radius * 0.7;
+    const label = names[i];
+    ctx.fillText(label, radius - 14, 0, maxTextWidth);
+    ctx.restore();
+  }
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.12, 0, 2 * Math.PI);
+  ctx.fillStyle = PMG_COLORS.gold;
+  ctx.fill();
+  ctx.strokeStyle = PMG_COLORS.green.dark;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Center "PMG" label placeholder (replaced by logo image if provided)
+  ctx.fillStyle = PMG_COLORS.green.dark;
+  ctx.font = `bold ${Math.max(8, radius * 0.05)}px 'Montserrat', sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowBlur = 0;
+  ctx.fillText("PMG", 0, 0);
+
+  ctx.restore();
+
+  // Outer ring glow border
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius + 6, 0, 2 * Math.PI);
+  ctx.strokeStyle = PMG_COLORS.gold;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radius + 12, 0, 2 * Math.PI);
+  ctx.strokeStyle = PMG_COLORS.green.dark;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPointer(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number
+) {
+  const pSize = 28;
+  ctx.save();
+  ctx.translate(cx + radius + pSize * 0.3, cy);
+  ctx.beginPath();
+  ctx.moveTo(pSize, 0);
+  ctx.lineTo(0, -pSize * 0.5);
+  ctx.lineTo(-pSize * 0.1, 0);
+  ctx.lineTo(0, pSize * 0.5);
+  ctx.closePath();
+  ctx.fillStyle = PMG_COLORS.red.dark;
+  ctx.strokeStyle = PMG_COLORS.gold;
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────
+export default function App() {
+  // Names state
+  const [namesRaw, setNamesRaw] = useState(
+    "João Silva\nMaria Santos\nPedro Lima\nAna Costa\nCarlos Souza\nFernanda Rocha\nRicardo Alves\nBeatriz Nunes"
+  );
+  const names = namesRaw
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  // Campaign
+  const [campaign, setCampaign] = useState("Sorteio PMG");
+
+  // Spin state
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [winner, setWinner] = useState<string | null>(null);
+  const [winnerIdx, setWinnerIdx] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
+
+  // History
+  const [history, setHistory] = useState<SpinRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"names" | "history">("names");
+
+  // Asset fallback state (true while real logo/mascot files aren't found)
+  const [logoMissing, setLogoMissing] = useState(false);
+  const [mascotMissing, setMascotMissing] = useState(false);
+
+  // Canvas refs
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>(0);
+  const rotRef = useRef(0);
+  const velRef = useRef(0);
+  const confettiRef = useRef<Particle[]>([]);
+  const confettiActiveRef = useRef(false);
+  const pulseRef = useRef(0);
+
+  // ── Draw loop ──
+  const draw = useCallback(
+    (spinning: boolean, targetHighlight: number | null) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const cx = W / 2;
+      const cy = H / 2;
+      const radius = Math.min(cx, cy) - 32;
+
+      // Idle pulse glow
+      if (!spinning) {
+        pulseRef.current += 0.03;
+        const glow = 0.3 + 0.2 * Math.sin(pulseRef.current);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.beginPath();
+        ctx.arc(0, 0, radius + 20, 0, 2 * Math.PI);
+        ctx.strokeStyle = `rgba(46, 125, 50, ${glow})`;
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (names.length >= 2) {
+        drawWheel(
+          ctx,
+          cx,
+          cy,
+          radius,
+          names,
+          rotRef.current,
+          targetHighlight
+        );
+        drawPointer(ctx, cx, cy, radius);
+      } else {
+        // Placeholder
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = PMG_COLORS.green.pale;
+        ctx.fill();
+        ctx.strokeStyle = PMG_COLORS.green.dark;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = PMG_COLORS.green.dark;
+        ctx.font = "bold 16px Montserrat, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Adicione nomes", 0, 0);
+        ctx.restore();
+      }
+
+      // Confetti
+      if (confettiActiveRef.current && confettiRef.current.length > 0) {
+        confettiRef.current = confettiRef.current.filter((p) => {
+          p.life++;
+          const alpha = 1 - p.life / p.maxLife;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.5;
+          p.rotation += p.rotSpeed;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.5);
+          ctx.restore();
+          return p.life < p.maxLife;
+        });
+        if (confettiRef.current.length === 0) {
+          confettiActiveRef.current = false;
+        }
+      }
+    },
+    [names]
+  );
+
+  // ── Animation frame ──
+  const frameRef = useRef<() => void>(() => {});
+  frameRef.current = () => {
+    const spinning = isSpinning;
+    draw(spinning, highlightIdx);
+    animRef.current = requestAnimationFrame(frameRef.current);
+  };
+
+  useEffect(() => {
+    animRef.current = requestAnimationFrame(frameRef.current);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [draw, isSpinning, highlightIdx]);
+
+  // ── Canvas resize ──
+  useEffect(() => {
+    const resize = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const container = canvas.parentElement;
+      if (!container) return;
+      const size = Math.min(container.clientWidth, 520);
+      canvas.width = size;
+      canvas.height = size;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
+
+  // ── Load history ──
+  const loadHistory = useCallback(async () => {
+    if (!supabase) return;
+    setHistoryLoading(true);
+    try {
+      const { data } = await supabase
+        .from("wheel_spins")
+        .select("*")
+        .order("spun_at", { ascending: false })
+        .limit(50);
+      if (data) setHistory(data as SpinRecord[]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  // ── Save spin to Supabase ──
+  const saveSpin = async (winnerName: string) => {
+    if (!supabase) return;
+    await supabase.from("wheel_spins").insert({
+      winner: winnerName,
+      campaign: campaign.trim() || "Sorteio PMG",
+      spun_at: new Date().toISOString(),
+    });
+    loadHistory();
+  };
+
+  // ── Spin logic ──
+  const spin = () => {
+    if (isSpinning || names.length < 2) return;
+    setWinner(null);
+    setWinnerIdx(null);
+    setHighlightIdx(null);
+    setShowModal(false);
+    setIsSpinning(true);
+    confettiActiveRef.current = false;
+
+    const minSpins = 5;
+    const maxSpins = 9;
+    const totalRotation =
+      (minSpins + Math.random() * (maxSpins - minSpins)) * 2 * Math.PI;
+    const duration = 4000 + Math.random() * 2000;
+    const start = performance.now();
+    const startRot = rotRef.current;
+
+    // Easing: ease-out cubic
+    const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      rotRef.current = startRot + totalRotation * easeOut(t);
+
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        // Determine winner
+        const arc = (2 * Math.PI) / names.length;
+        // Pointer is at angle 0 (right side), wheel rotated
+        const normalizedRot =
+          ((rotRef.current % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        const pointerAngle = 2 * Math.PI - normalizedRot;
+        const idx = Math.floor(
+          ((pointerAngle % (2 * Math.PI)) / (2 * Math.PI)) * names.length
+        ) % names.length;
+        const winnerName = names[idx];
+
+        setWinnerIdx(idx);
+        setHighlightIdx(idx);
+        setWinner(winnerName);
+        setIsSpinning(false);
+        setShowModal(true);
+
+        // Confetti
+        const canvas = canvasRef.current;
+        if (canvas) {
+          confettiRef.current = createConfetti(canvas);
+          confettiActiveRef.current = true;
+        }
+
+        saveSpin(winnerName);
+      }
+    };
+
+    requestAnimationFrame(tick);
+  };
+
+  // ── Remove winner ──
+  const removeWinner = () => {
+  if (!winner) return;
+  const next = names.filter((n) => n !== winner).join("\n");
+  setNamesRaw(next);
+  setWinner(null);
+  setWinnerIdx(null);
+  setHighlightIdx(null);
+  setShowModal(false);
+};
+
+  // ─────────────────────────────────────────────────────────────────
+  return (
+    <div style={styles.root}>
+      {/* ── Header ── */}
+      <header style={styles.header}>
+        <div style={styles.headerInner}>
+          <div style={styles.headerBrand}>
+            {/* Logo real — cai para o placeholder "PMG" se /logo.png não existir */}
+            {!logoMissing ? (
+              <img
+                src="/logo.png"
+                alt="Logo PMG Atacadista"
+                width={52}
+                height={52}
+                style={styles.logoImg}
+                onError={() => setLogoMissing(true)}
+              />
+            ) : (
+              <div style={styles.logoPlaceholder}>
+                <span style={styles.logoText}>PMG</span>
+              </div>
+            )}
+            <div>
+              <h1 style={styles.headerTitle}>Roda da Sorte</h1>
+              <p style={styles.headerSub}>PMG Atacadista</p>
+            </div>
+          </div>
+          <div style={styles.headerCampaign}>
+            <label style={styles.label}>Campanha</label>
+            <input
+              value={campaign}
+              onChange={(e) => setCampaign(e.target.value)}
+              style={styles.campaignInput}
+              placeholder="Nome da campanha..."
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ── Main layout ── */}
+      <main style={styles.main}>
+        {/* ── Wheel column ── */}
+        <section style={styles.wheelCol}>
+          <div style={styles.canvasWrapper}>
+            <canvas ref={canvasRef} style={styles.canvas} />
+          </div>
+
+          <button
+            onClick={spin}
+            disabled={isSpinning || names.length < 2}
+            style={{
+              ...styles.spinBtn,
+              ...(isSpinning || names.length < 2
+                ? styles.spinBtnDisabled
+                : {}),
+            }}
+          >
+            {isSpinning ? (
+              <span style={styles.spinBtnText}>
+                <SpinnerIcon /> Girando...
+              </span>
+            ) : (
+              <span style={styles.spinBtnText}>🎡 GIRAR</span>
+            )}
+          </button>
+
+          {winner && !showModal && (
+            <div style={styles.winnerBadge}>
+              🏆 <strong>{winner}</strong> foi sorteado!
+            </div>
+          )}
+        </section>
+
+        {/* ── Side panel ── */}
+        <aside style={styles.panel}>
+          {/* Tab switcher */}
+          <div style={styles.tabBar}>
+            <button
+              onClick={() => setActiveTab("names")}
+              style={{
+                ...styles.tab,
+                ...(activeTab === "names" ? styles.tabActive : {}),
+              }}
+            >
+              Participantes ({names.length})
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("history");
+                loadHistory();
+              }}
+              style={{
+                ...styles.tab,
+                ...(activeTab === "history" ? styles.tabActive : {}),
+              }}
+            >
+              Histórico
+            </button>
+          </div>
+
+          {activeTab === "names" && (
+            <div style={styles.panelBody}>
+              <label style={styles.label}>
+                Um nome por linha
+              </label>
+              <textarea
+                value={namesRaw}
+                onChange={(e) => {
+                  setNamesRaw(e.target.value);
+                  setWinner(null);
+                  setWinnerIdx(null);
+                  setHighlightIdx(null);
+                }}
+                style={styles.textarea}
+                placeholder={"João Silva\nMaria Santos\nPedro Lima\n..."}
+                rows={16}
+              />
+              <div style={styles.nameActions}>
+                <button
+                  onClick={() => setNamesRaw("")}
+                  style={styles.secondaryBtn}
+                >
+                  Limpar
+                </button>
+                {winner && (
+                  <button onClick={removeWinner} style={styles.dangerBtn}>
+                    Remover vencedor
+                  </button>
+                )}
+              </div>
+
+              {names.length < 2 && (
+                <p style={styles.hint}>
+                  ⚠️ Adicione pelo menos 2 participantes para girar.
+                </p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "history" && (
+            <div style={styles.panelBody}>
+              {!supabase && (
+                <div style={styles.supabaseNotice}>
+                  <p style={styles.supabaseNoticeTitle}>Supabase não conectado</p>
+                  <p style={styles.supabaseNoticeText}>
+                    Configure as variáveis de ambiente{" "}
+                    <code>VITE_SUPABASE_URL</code> e{" "}
+                    <code>VITE_SUPABASE_ANON_KEY</code> e crie a tabela{" "}
+                    <code>wheel_spins</code> no seu projeto Supabase.
+                  </p>
+                  <pre style={styles.sqlBlock}>{SQL_SCHEMA}</pre>
+                </div>
+              )}
+
+              {supabase && historyLoading && (
+                <p style={styles.hint}>Carregando histórico...</p>
+              )}
+
+              {supabase && !historyLoading && history.length === 0 && (
+                <p style={styles.hint}>Nenhum sorteio registrado ainda.</p>
+              )}
+
+              {supabase && !historyLoading && history.length > 0 && (
+                <div style={styles.historyList}>
+                  {history.map((r) => (
+                    <div key={r.id} style={styles.historyItem}>
+                      <div style={styles.historyWinner}>🏆 {r.winner}</div>
+                      <div style={styles.historyMeta}>
+                        <span style={styles.historyTag}>{r.campaign}</span>
+                        <span style={styles.historyDate}>
+                          {new Date(r.spun_at).toLocaleString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </aside>
+      </main>
+
+      {/* ── Winner Modal ── */}
+      {showModal && winner && (
+        <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div
+            style={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Mascot placeholder */}
+            <div style={styles.mascotArea}>
+              <div style={styles.mascotPlaceholder}>
+                {/* Replace with: <img src="/mascot.png" style={{width:'100%',height:'100%',objectFit:'contain'}} /> */}
+                <span style={{ fontSize: 56 }}>🎊</span>
+              </div>
+            </div>
+
+            <div style={styles.modalContent}>
+              <p style={styles.modalLabel}>Parabéns!</p>
+              <h2 style={styles.modalWinner}>{winner}</h2>
+              <p style={styles.modalCampaign}>{campaign}</p>
+
+              <div style={styles.modalActions}>
+                <button
+                  onClick={() => {
+  setShowModal(false);
+  setTimeout(() => spin(), 50);
+}}
+                  style={styles.spinBtn}
+                >
+                  Girar Novamente
+                </button>
+                <button onClick={removeWinner} style={styles.dangerBtn}>
+                  Remover e Continuar
+                </button>
+                <button
+                  onClick={() => setShowModal(false)}
+                  style={styles.secondaryBtn}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Footer ── */}
+      <footer style={styles.footer}>
+        <p>
+          PMG Atacadista — Rua Ada Negri, 96 – Santo Amaro / SP &nbsp;|&nbsp;
+          Seg–Sex 08h–18h · Sáb e fer. 09h–13h
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+// ─── SPINNER ICON ─────────────────────────────────────────────────
+function SpinnerIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      style={{ animation: "spin 1s linear infinite", verticalAlign: "middle" }}
+    >
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+    </svg>
+  );
+}
+
+// ─── SQL SCHEMA (shown when Supabase not configured) ──────────────
+const SQL_SCHEMA = `create table wheel_spins (
+  id uuid default gen_random_uuid() primary key,
+  winner text not null,
+  campaign text not null default 'Sorteio PMG',
+  spun_at timestamptz default now()
+);
+
+-- Enable Row Level Security (opcional)
+alter table wheel_spins enable row level security;
+create policy "public insert" on wheel_spins
+  for insert with check (true);
+create policy "public select" on wheel_spins
+  for select using (true);`;
+
+// ─── STYLES ───────────────────────────────────────────────────────
+const styles: Record<string, React.CSSProperties> = {
+  root: {
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    fontFamily: "'Montserrat', 'Inter', sans-serif",
+    background: PMG_COLORS.offwhite,
+    color: PMG_COLORS.darkText,
+  },
+
+  // Header
+  header: {
+    background: PMG_COLORS.green.dark,
+    borderBottom: `4px solid ${PMG_COLORS.gold}`,
+    padding: "0 24px",
+  },
+  headerInner: {
+    maxWidth: 1200,
+    margin: "0 auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "14px 0",
+    flexWrap: "wrap" as const,
+  },
+  headerBrand: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+  },
+  logoPlaceholder: {
+    width: 52,
+    height: 52,
+    borderRadius: 8,
+    background: PMG_COLORS.gold,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: 800,
+    fontSize: 18,
+    color: PMG_COLORS.green.dark,
+    letterSpacing: 1,
+    flexShrink: 0,
+    // Replace this div with <img src="/logo.png" width={52} height={52} />
+  },
+  logoText: { fontFamily: "Montserrat, sans-serif" },
+  logoImg: {
+  width: 52,
+  height: 52,
+  borderRadius: 8,
+  objectFit: "contain" as const,
+  flexShrink: 0,
+},
+  headerTitle: {
+    margin: 0,
+    fontSize: 22,
+    fontWeight: 800,
+    color: "#ffffff",
+    lineHeight: 1.1,
+    letterSpacing: 0.5,
+  },
+  headerSub: {
+    margin: 0,
+    fontSize: 12,
+    color: PMG_COLORS.gold,
+    fontWeight: 600,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+  },
+  headerCampaign: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 4,
+    minWidth: 220,
+  },
+  campaignInput: {
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: `2px solid ${PMG_COLORS.gold}`,
+    background: "rgba(255,255,255,0.12)",
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: 600,
+    outline: "none",
+    fontFamily: "Montserrat, sans-serif",
+  },
+
+  // Main
+  main: {
+    flex: 1,
+    maxWidth: 1200,
+    width: "100%",
+    margin: "0 auto",
+    padding: "32px 20px",
+    display: "flex",
+    gap: 32,
+    flexWrap: "wrap" as const,
+    alignItems: "flex-start",
+  },
+
+  // Wheel
+  wheelCol: {
+    flex: "1 1 400px",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    gap: 20,
+  },
+  canvasWrapper: {
+    width: "100%",
+    maxWidth: 520,
+    position: "relative" as const,
+    // Decorative ring
+    borderRadius: "50%",
+    padding: 0,
+  },
+  canvas: {
+    width: "100%",
+    height: "auto",
+    display: "block",
+    filter: "drop-shadow(0 8px 32px rgba(46,125,50,0.25))",
+  },
+
+  // Spin button
+  spinBtn: {
+    width: "100%",
+    maxWidth: 320,
+    padding: "16px 32px",
+    background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, ${PMG_COLORS.green.mid} 100%)`,
+    color: "#ffffff",
+    border: `3px solid ${PMG_COLORS.gold}`,
+    borderRadius: 50,
+    fontSize: 20,
+    fontWeight: 800,
+    fontFamily: "Montserrat, sans-serif",
+    cursor: "pointer",
+    letterSpacing: 2,
+    textTransform: "uppercase" as const,
+    transition: "transform 0.15s, box-shadow 0.15s",
+    boxShadow: `0 6px 24px rgba(26,92,42,0.35)`,
+  },
+  spinBtnDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed",
+    boxShadow: "none",
+  },
+  spinBtnText: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  winnerBadge: {
+    background: PMG_COLORS.green.pale,
+    border: `2px solid ${PMG_COLORS.green.mid}`,
+    color: PMG_COLORS.green.dark,
+    borderRadius: 12,
+    padding: "12px 20px",
+    fontSize: 16,
+    fontWeight: 700,
+    textAlign: "center" as const,
+  },
+
+  // Panel
+  panel: {
+    flex: "0 0 340px",
+    background: PMG_COLORS.white,
+    borderRadius: 16,
+    border: `1px solid #e2e8f0`,
+    boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+    overflow: "hidden",
+    minWidth: 280,
+  },
+  tabBar: {
+    display: "flex",
+    borderBottom: `1px solid #e2e8f0`,
+  },
+  tab: {
+    flex: 1,
+    padding: "14px 8px",
+    background: "transparent",
+    border: "none",
+    borderBottom: "3px solid transparent",
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 700,
+    color: PMG_COLORS.gray.mid,
+    fontFamily: "Montserrat, sans-serif",
+    transition: "color 0.2s",
+  },
+  tabActive: {
+    color: PMG_COLORS.green.dark,
+    borderBottomColor: PMG_COLORS.green.dark,
+  },
+  panelBody: {
+    padding: 20,
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 12,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: PMG_COLORS.gray.dark,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.8,
+  },
+  textarea: {
+    width: "100%",
+    padding: "12px",
+    border: `1.5px solid #e2e8f0`,
+    borderRadius: 10,
+    fontSize: 14,
+    fontFamily: "Montserrat, sans-serif",
+    resize: "vertical" as const,
+    outline: "none",
+    color: PMG_COLORS.darkText,
+    lineHeight: 1.7,
+    boxSizing: "border-box" as const,
+  },
+  nameActions: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap" as const,
+  },
+  secondaryBtn: {
+    padding: "8px 16px",
+    borderRadius: 8,
+    border: `1.5px solid #e2e8f0`,
+    background: "#f8fafc",
+    color: PMG_COLORS.gray.dark,
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 600,
+    fontFamily: "Montserrat, sans-serif",
+  },
+  dangerBtn: {
+    padding: "8px 16px",
+    borderRadius: 8,
+    border: `1.5px solid ${PMG_COLORS.red.light}`,
+    background: PMG_COLORS.red.pale,
+    color: PMG_COLORS.red.dark,
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 700,
+    fontFamily: "Montserrat, sans-serif",
+  },
+  hint: {
+    fontSize: 13,
+    color: PMG_COLORS.gray.mid,
+    margin: 0,
+  },
+
+  // History
+  historyList: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 8,
+    maxHeight: 420,
+    overflowY: "auto" as const,
+  },
+  historyItem: {
+    background: "#f8fafc",
+    borderRadius: 10,
+    padding: "10px 14px",
+    border: "1px solid #e2e8f0",
+  },
+  historyWinner: {
+    fontWeight: 700,
+    fontSize: 14,
+    color: PMG_COLORS.green.dark,
+    marginBottom: 4,
+  },
+  historyMeta: {
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+    flexWrap: "wrap" as const,
+  },
+  historyTag: {
+    background: PMG_COLORS.green.pale,
+    color: PMG_COLORS.green.dark,
+    fontSize: 11,
+    fontWeight: 700,
+    padding: "2px 8px",
+    borderRadius: 20,
+  },
+  historyDate: {
+    fontSize: 11,
+    color: PMG_COLORS.gray.mid,
+  },
+
+  // Supabase notice
+  supabaseNotice: {
+    background: "#fffbeb",
+    border: "1px solid #fde68a",
+    borderRadius: 10,
+    padding: 16,
+  },
+  supabaseNoticeTitle: {
+    margin: "0 0 6px",
+    fontWeight: 700,
+    fontSize: 14,
+    color: "#92400e",
+  },
+  supabaseNoticeText: {
+    margin: "0 0 12px",
+    fontSize: 12,
+    color: "#78350f",
+    lineHeight: 1.6,
+  },
+  sqlBlock: {
+    background: "#1e293b",
+    color: "#94d2bd",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 10,
+    lineHeight: 1.7,
+    overflowX: "auto" as const,
+    margin: 0,
+    fontFamily: "monospace",
+  },
+
+  // Modal
+  modalOverlay: {
+    position: "fixed" as const,
+    inset: 0,
+    background: "rgba(0,0,0,0.65)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 100,
+    padding: 20,
+  },
+  modal: {
+    background: PMG_COLORS.white,
+    borderRadius: 20,
+    border: `4px solid ${PMG_COLORS.gold}`,
+    boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
+    overflow: "hidden",
+    maxWidth: 440,
+    width: "100%",
+    position: "relative" as const,
+  },
+  mascotArea: {
+    background: `linear-gradient(135deg, ${PMG_COLORS.green.dark} 0%, ${PMG_COLORS.green.mid} 100%)`,
+    padding: "28px 20px 20px",
+    display: "flex",
+    justifyContent: "center",
+  },
+  mascotPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.15)",
+    border: `3px solid ${PMG_COLORS.gold}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    // Replace contents with your mascot image
+  },
+  modalContent: {
+    padding: "24px 28px 28px",
+    textAlign: "center" as const,
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 12,
+  },
+  modalLabel: {
+    margin: 0,
+    fontSize: 13,
+    fontWeight: 700,
+    color: PMG_COLORS.gray.mid,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+  },
+  modalWinner: {
+    margin: 0,
+    fontSize: 30,
+    fontWeight: 900,
+    color: PMG_COLORS.green.dark,
+    lineHeight: 1.2,
+    letterSpacing: -0.5,
+  },
+  modalCampaign: {
+    margin: 0,
+    fontSize: 13,
+    color: PMG_COLORS.gray.mid,
+    fontWeight: 600,
+  },
+  modalActions: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 8,
+    marginTop: 8,
+  },
+
+  // Footer
+  footer: {
+    background: PMG_COLORS.green.dark,
+    borderTop: `4px solid ${PMG_COLORS.gold}`,
+    padding: "14px 24px",
+    textAlign: "center" as const,
+    fontSize: 12,
+    color: "rgba(255,255,255,0.7)",
+  },
+};
+
+// ── Inject keyframes ──────────────────────────────────────────────
+if (!document.getElementById("pmg-styles")) {
+  const style = document.createElement("style");
+  style.id = "pmg-styles";
+  style.textContent = `
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    textarea:focus, input:focus { border-color: #2e7d32 !important; box-shadow: 0 0 0 3px rgba(46,125,50,0.15); }
+    button:not(:disabled):hover { filter: brightness(0.93); }
+  `;
+  document.head.appendChild(style);
+}
+
