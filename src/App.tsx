@@ -676,6 +676,20 @@ const [mascotMissing, setMascotMissing] = useState(false);
             </div>
           )}
         </aside>
+        {!mascotMissing && (
+          <div
+            className="pmg-floating-mascot"
+            style={styles.floatingMascotWrap}
+          >
+            <img
+              src="/mascot.png"
+              alt="Mascote PMG"
+              style={styles.floatingMascotImg}
+              onError={() => setMascotMissing(true)}
+            />
+          </div>
+        )}
+
       </main>
 
       {/* ── Winner Modal ── */}
@@ -897,7 +911,22 @@ const styles: Record<string, React.CSSProperties> = {
   animation: "pulseGlow 3s ease-in-out infinite",
   filter: "drop-shadow(0 8px 32px rgba(46,125,50,0.25))",
 },
-
+floatingMascotWrap: {
+  position: "fixed" as const,
+  bottom: 20,
+  right: 20,
+  width: 120,
+  height: 120,
+  zIndex: 40,
+  animation: "mascotFloat 3.5s ease-in-out infinite",
+  pointerEvents: "none" as const,
+},
+floatingMascotImg: {
+  width: "100%",
+  height: "100%",
+  objectFit: "contain" as const,
+  filter: "drop-shadow(0 12px 24px rgba(6,42,16,0.35))",
+},
   spinBtn: {
     width: "100%",
     maxWidth: 320,
@@ -1198,6 +1227,13 @@ button:not(:disabled):active { transform: scale(0.97) !important; }
   0%, 100% { box-shadow: 0 0 32px 8px rgba(34,197,94,0.25), 0 0 80px 16px rgba(34,197,94,0.08); }
   50%       { box-shadow: 0 0 56px 16px rgba(34,197,94,0.45), 0 0 120px 32px rgba(34,197,94,0.18); }
 }
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%       { transform: translateY(-16px) rotate(3deg); }
+}
+@media (max-width: 640px) {
+  .pmg-floating-mascot { width: 76px !important; height: 76px !important; bottom: 12px !important; right: 12px !important; }
+}
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(28px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0)   scale(1);    }
@@ -1207,10 +1243,12 @@ button:not(:disabled):active { transform: scale(0.97) !important; }
   70%  { transform: scale(1.05) translateY(-4px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
+
 @keyframes shimmer {
   0%   { background-position: -400px 0; }
   100% { background-position:  400px 0; }
 }
+  
   `;
   document.head.appendChild(style);
 }
