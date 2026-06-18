@@ -922,8 +922,8 @@ floatingMascotWrap: {
   pointerEvents: "none" as const,
 },
 floatingMascotImg: {
-  width: "100%",
-  height: "100%",
+  width: "200%",
+  height: "200%",
   objectFit: "contain" as const,
   filter: "drop-shadow(0 12px 24px rgba(6,42,16,0.35))",
 },
