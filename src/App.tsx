@@ -229,7 +229,6 @@ export default function App() {
     .filter(Boolean);
 
   // Campaign
-  const [started, setStarted] = useState(false);
   const [campaign, setCampaign] = useState("Sorteio PMG");
 // Duração do giro (segundos)
 const [spinDuration, setSpinDuration] = useState(5);
@@ -248,32 +247,6 @@ const [spinDuration, setSpinDuration] = useState(5);
   // Asset fallback state (true while real logo/mascot files aren't found)
   const [logoMissing, setLogoMissing] = useState(false);
 const [mascotMissing, setMascotMissing] = useState(false);
-if (!started) {
-  return (
-    <div style={styles.splash}>
-      <img
-        src="/logo.png"
-        alt="PMG"
-        style={styles.splashLogo}
-      />
-
-      <h1 style={styles.splashTitle}>
-        RODA DA SORTE
-      </h1>
-
-      <p style={styles.splashSubtitle}>
-        PMG Atacadista
-      </p>
-
-      <button
-        style={styles.splashButton}
-        onClick={() => setStarted(true)}
-      >
-        COMEÇAR SORTEIO
-      </button>
-    </div>
-  );
-}
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -281,7 +254,6 @@ if (!started) {
   const confettiRef = useRef<Particle[]>([]);
   const confettiActiveRef = useRef(false);
   const pulseRef = useRef(0);
-  
 
   // ── Draw loop ──
   const draw = useCallback(
@@ -811,7 +783,6 @@ create policy "public select" on wheel_spins
   for select using (true);`;
 
 // ─── STYLES ───────────────────────────────────────────────────────
-
 const styles: Record<string, React.CSSProperties> = {
   root: {
     width: "100%",           // ← era 100vw (causava overflow)
@@ -1238,51 +1209,6 @@ floatingMascotImg: {
     gap: 8,
     marginTop: 8,
   },
-  splash: {
-  width: "100%",
-  height: "100vh",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-
-  background:
-    "linear-gradient(135deg,#062a10 0%,#0f5c23 100%)",
-},
-
-splashLogo: {
-  width: 300,
-  marginBottom: 30,
-},
-
-splashTitle: {
-  fontSize: 72,
-  color: "#fff",
-  margin: 0,
-  fontFamily: "'Bebas Neue'",
-  letterSpacing: 5,
-},
-
-splashSubtitle: {
-  color: "#22c55e",
-  fontSize: 22,
-  marginBottom: 40,
-},
-
-splashButton: {
-  padding: "20px 50px",
-  borderRadius: 50,
-  border: "none",
-  background: "#22c55e",
-
-  color: "white",
-
-  fontSize: 24,
-
-  fontWeight: 700,
-
-  cursor: "pointer",
-},
 };
 
 // ── Inject keyframes ──────────────────────────────────────────────
