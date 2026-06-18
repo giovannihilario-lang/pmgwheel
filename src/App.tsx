@@ -772,7 +772,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "'Inter', 'Montserrat', sans-serif",
     background: `radial-gradient(ellipse at top, #dcfce7 0%, #f0f4f1 60%)`,
     color: PMG_COLORS.darkText,
-    overflow: "auto",        // ← era hidden (cortava conteúdo)
+    overflow: "hidden",        // ← era hidden (cortava conteúdo)
   },
 
   header: {
@@ -875,22 +875,21 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 20,
   },
   canvasWrapper: {
-    width: "100%",
-    display: "flex",                         // ← removido aspectRatio (distorcia)
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: "50%",
-    background: "radial-gradient(circle at center, #0f5c23 0%, #062a10 75%)",
-    animation: "pulseGlow 3s ease-in-out infinite",
-    padding: 8,                              // ← era 16 (distorcia o aspect ratio)
-  },
+  width: "100%",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  padding: 0,
+},
   canvas: {
-    width: "100%",
-    maxWidth: 520,
-    height: "auto",
-    display: "block",
-    filter: "drop-shadow(0 8px 32px rgba(46,125,50,0.25))",
-  },
+  width: "100%",
+  maxWidth: 480,
+  height: "auto",
+  display: "block",
+  borderRadius: "50%",
+  animation: "pulseGlow 3s ease-in-out infinite",
+  filter: "drop-shadow(0 8px 32px rgba(46,125,50,0.25))",
+},
 
   spinBtn: {
     width: "100%",
