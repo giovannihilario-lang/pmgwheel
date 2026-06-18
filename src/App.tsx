@@ -233,7 +233,7 @@ export default function App() {
   // Spin state
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
-  const [winnerIdx, setWinnerIdx] = useState<number | null>(null);
+  const [, setWinnerIdx] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
 
@@ -244,13 +244,11 @@ export default function App() {
 
   // Asset fallback state (true while real logo/mascot files aren't found)
   const [logoMissing, setLogoMissing] = useState(false);
-  const [mascotMissing, setMascotMissing] = useState(false);
 
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const rotRef = useRef(0);
-  const velRef = useRef(0);
   const confettiRef = useRef<Particle[]>([]);
   const confettiActiveRef = useRef(false);
   const pulseRef = useRef(0);
@@ -430,8 +428,6 @@ export default function App() {
       if (t < 1) {
         requestAnimationFrame(tick);
       } else {
-        // Determine winner
-        const arc = (2 * Math.PI) / names.length;
         // Pointer is at angle 0 (right side), wheel rotated
         const normalizedRot =
           ((rotRef.current % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
