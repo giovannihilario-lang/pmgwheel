@@ -495,8 +495,7 @@ if (!started) {
       </button>
     </div>
   );
-  
-  // ─────────────────────────────────────────────────────────────────
+}
   return (
     <div style={styles.root}>
       {/* ── Header ── */}
@@ -1323,5 +1322,4 @@ button:not(:disabled):active { transform: scale(0.97) !important; }
   
   `;
   document.head.appendChild(style);
-}
 }
