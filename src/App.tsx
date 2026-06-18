@@ -246,7 +246,7 @@ const [spinDuration, setSpinDuration] = useState(5);
 
   // Asset fallback state (true while real logo/mascot files aren't found)
   const [logoMissing, setLogoMissing] = useState(false);
-
+const [mascotMissing, setMascotMissing] = useState(false);
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -688,9 +688,16 @@ const [spinDuration, setSpinDuration] = useState(5);
             {/* Mascot placeholder */}
             <div style={styles.mascotArea}>
               <div style={styles.mascotPlaceholder}>
-  {/* ↓ COLOQUE O MASCOTE AQUI — substitua por: */}
-  {/* <img src="/mascot.png" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> */}
-  <span style={{ fontSize: 52 }}>🏆</span>
+  {!mascotMissing ? (
+    <img
+      src="/mascot.png"
+      alt="Mascote"
+      style={{ width: "100%", height: "100%", objectFit: "contain" }}
+      onError={() => setMascotMissing(true)}
+    />
+  ) : (
+    <span style={{ fontSize: 52 }}>🏆</span>
+  )}
 </div>
             </div>
 
@@ -772,7 +779,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "'Inter', 'Montserrat', sans-serif",
     background: `radial-gradient(ellipse at top, #dcfce7 0%, #f0f4f1 60%)`,
     color: PMG_COLORS.darkText,
-    overflow: "hidden",        // ← era hidden (cortava conteúdo)
+    overflow: "hidden",
   },
 
   header: {
@@ -814,8 +821,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logoText: { fontFamily: "Montserrat, sans-serif" },
   logoImg: {
-    width: 152,
-    height: 152,
+    width: 250,
+    height: 250,
     borderRadius: 8,
     objectFit: "contain" as const,
     flexShrink: 0,
