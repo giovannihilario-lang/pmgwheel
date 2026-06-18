@@ -230,7 +230,8 @@ export default function App() {
 
   // Campaign
   const [campaign, setCampaign] = useState("Sorteio PMG");
-
+// Duração do giro (segundos)
+const [spinDuration, setSpinDuration] = useState(5);
   // Spin state
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
@@ -414,7 +415,7 @@ export default function App() {
     const maxSpins = 9;
     const totalRotation =
       (minSpins + Math.random() * (maxSpins - minSpins)) * 2 * Math.PI;
-    const duration = 4000 + Math.random() * 2000;
+    const duration = spinDuration * 1000;
     const start = performance.now();
     const startRot = rotRef.current;
 
@@ -515,7 +516,27 @@ export default function App() {
           <div style={styles.canvasWrapper}>
             <canvas ref={canvasRef} style={styles.canvas} />
           </div>
-
+{/* Duração do giro */}
+<div style={{ width: "100%", maxWidth: 320 }}>
+  <label style={{ ...styles.label, display: "flex", justifyContent: "space-between" }}>
+    <span>Duração do giro</span>
+    <span style={{ color: PMG_COLORS.green.glow, fontWeight: 800 }}>{spinDuration}s</span>
+  </label>
+  <input
+    type="range"
+    min={2}
+    max={15}
+    step={1}
+    value={spinDuration}
+    onChange={(e) => setSpinDuration(Number(e.target.value))}
+    disabled={isSpinning}
+    style={{ width: "100%", accentColor: PMG_COLORS.green.light, marginTop: 6 }}
+  />
+  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: PMG_COLORS.gray.mid, marginTop: 2 }}>
+    <span>2s (rápido)</span>
+    <span>15s (lento)</span>
+  </div>
+</div>
           <button
             onClick={spin}
             disabled={isSpinning || names.length < 2}
@@ -793,8 +814,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logoText: { fontFamily: "Montserrat, sans-serif" },
   logoImg: {
-    width: 52,
-    height: 52,
+    width: 152,
+    height: 152,
     borderRadius: 8,
     objectFit: "contain" as const,
     flexShrink: 0,
